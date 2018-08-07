@@ -10,7 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 def review_to_words( raw_review ):
     # 1. Remove HTML
     review_text = BeautifulSoup(raw_review).get_text() 
-    # 2. Remove non-letters        
+    # 2. Remove non-letters    
     letters_only = re.sub("[^a-zA-Z]", " ", review_text) 
     # 3. Convert to lower case, split into individual words
     words = letters_only.lower().split()                             
@@ -71,42 +71,45 @@ forest = RandomForestClassifier(n_estimators = 100)
 # This may take a few minutes to run
 forest = forest.fit( train_data_features, train["sentiment"] )
 
-cont = True
-while (cont):
-    text = input("Enter text: ")
-    if (text == "stop"):
-        cont = False
-    print (forest.predict(vectorizer.transform([text]).toarray())[0])
+def examineText(str):
+    return forest.predict(vectorizer.transform([str]).toarray())[0]
 
+from tkinter import *
+from PIL import ImageTk,Image
+window = Tk()
+window.title("Bag of Words Meets Bags of Popcorn")
+window.geometry('1100x600')
+#Tittel
+lbl = Label(window, text="Bag of Words Meets Bags of Popcorn",font=("Arial Bold", 40))
+lbl.grid(row=0)
+#space
+sp = Label(window, text="     ",font=("Arial Bold", 20))
+sp.grid(row=3)
+lbl2 = Label(window, text="Enter text to analyze:",font=("Arial Bold", 20))
+lbl2.grid(row=4)
+#space
 
-# Read the test data
-test = pd.read_csv("data/testData.tsv", header=0, delimiter="\t", \
-                   quoting=3 )
+spp = Label(window, text="     ",font=("Arial Bold", 20))
+spp.grid(row=5)
 
-# Verify that there are 25,000 rows and 2 columns
-print (test.shape)
+#to get the text txt.get()
+txt = Entry(window,width=50)
+txt.grid(row=7)
 
-# Create an empty list and append the clean reviews one by one
-num_reviews = len(test["review"])
-clean_test_reviews = [] 
+def clicked():
+    lbClick.configure(text=str(examineText(txt.get())))
 
-print ("Cleaning and parsing the test set movie reviews...\n")
-for i in range(num_reviews):
-    if( (i+1) % 1000 == 0 ):
-        print ("Review %d of %d\n" % (i+1, num_reviews))
-    clean_review = review_to_words( test["review"][i] )
-    clean_test_reviews.append( clean_review )
+def clickedR():
+	lbClick.configure(text=""                    "")
 
-# Get a bag of words for the test set, and convert to a numpy array
-test_data_features = vectorizer.transform(clean_test_reviews)
-test_data_features = test_data_features.toarray()
+#btn = Button(window, text="Click Me", command=clicked)
+#column=0, 
+btn = Button(window, text="Analyze", command=clicked)
+btn.grid(row=8)
+btnR = Button(window, text="Reset", command=clickedR)
+btnR.grid(row=9)
 
-# Use the random forest to make sentiment label predictions
-result = forest.predict(test_data_features)
+lbClick = Label(window, text="                    ",font=("Arial Bold", 40))
+lbClick.grid( row=10)
 
-# Copy the results to a pandas dataframe with an "id" column and
-# a "sentiment" column
-output = pd.DataFrame( data={"id":test["id"], "sentiment":result} )
-
-# Use pandas to write the comma-separated output file
-output.to_csv( "Bag_of_Words_model.csv", index=False, quoting=3 )
+window.mainloop()
